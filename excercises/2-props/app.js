@@ -23,32 +23,48 @@ var warning = require('react/lib/warning');
 
 var GRAVATAR_URL = "http://gravatar.com/avatar";
 
+var validateSize = require('./validateSize');
+
 var USERS = [
   { id: 1, name: 'Ryan Florence', email: 'rpflorencegmail.com' },
-  { id: 2, name: 'Michael Jackson', email: 'mjijackson@gmail.com' }
+  { id: 2, name: 'Michael Jackson', email: 'mjijackson@gmail.com' },
+  { id: 3, name: 'Michael Young', email: 'michaeljy@gmail.com'}
 ];
 
 var emailType = (props, propName, componentName) => {
   warning(
     validateEmail(props.email),
-    `Invalid email '${props.email}' sent to 'Gravatar'. Check the render method of '${componentName}'.`
+    `Invalid login ID '${props.email}' sent to 'Gravatar'. Check the render method of '${componentName}'.`
+  );
+};
+
+var sizeType = (props, propName, componentName) => {
+  warning(
+    validateSize(props.size),
+    `Invalid size '${props.size}'. The 'size' property should be an integer. `
   );
 };
 
 var Gravatar = React.createClass({
   propTypes: {
-    email: emailType
+    user: React.PropTypes.shape({
+      email: emailType,
+      name: React.PropTypes.string.isRequired,
+      id: React.PropTypes.number.isRequired
+    }).isRequired,
+    size: sizeType
   },
 
   getDefaultProps () {
+    console.log('getDefaultProps called');
     return {
-      size: 16
+      size: 32
     };
   },
 
   render () {
-    var { email, size } = this.props;
-    var hash = md5(email);
+    var { user, size } = this.props;
+    var hash = md5(user.email);
     var url = `${GRAVATAR_URL}/${hash}?s=${size*2}`;
     return <img src={url} width={size} />;
   }
@@ -56,10 +72,10 @@ var Gravatar = React.createClass({
 
 var App = React.createClass({
   render () {
-    var users = USERS.map((user) => {
+    var users = this.props.users.map((user) => {
       return (
         <li key={user.id}>
-          <Gravatar email={user.email} size={36} /> {user.name}
+          <Gravatar user={user} size={'50'} /> {user.name}
         </li>
       );
     });
@@ -72,7 +88,7 @@ var App = React.createClass({
   }
 });
 
-React.render(<App />, document.body);
+React.render(<App users={USERS} />, document.body);
 
 //require('./tests').run(Gravatar, emailType);
 
